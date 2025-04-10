@@ -44,6 +44,14 @@ export default function SiteSettings() {
         ogImage: false,
     });
 
+    // Şifre değiştirme state'leri
+    const [passwordData, setPasswordData] = useState({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+    });
+    const [isChangingPassword, setIsChangingPassword] = useState(false);
+
     // Yeni seçilen görseller (henüz yüklenmemiş)
     const [selectedFiles, setSelectedFiles] = useState<{
         logo: File | null;
@@ -348,6 +356,78 @@ export default function SiteSettings() {
             toast.error('Site ayarları kaydedilirken bir hata oluştu');
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    // Şifre form verilerini işle
+    const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setPasswordData(prev => ({
+            ...prev,
+            [name]: value,
+        }));
+    };
+
+    // Şifre değiştirme
+    const handlePasswordSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        const { currentPassword, newPassword, confirmPassword } = passwordData;
+
+        // Validasyon
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            toast.error('Tüm şifre alanları doldurulmalıdır');
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            toast.error('Yeni şifre ve onay şifresi eşleşmiyor');
+            return;
+        }
+
+        if (newPassword.length < 6) {
+            toast.error('Yeni şifre en az 6 karakter uzunluğunda olmalıdır');
+            return;
+        }
+
+        try {
+            setIsChangingPassword(true);
+            const token = localStorage.getItem('adminToken');
+
+            if (!token) {
+                router.push('/admin/giris');
+                return;
+            }
+
+            const response = await fetch('/api/admin/change-password', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    currentPassword,
+                    newPassword,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                toast.success('Şifre başarıyla değiştirildi');
+                setPasswordData({
+                    currentPassword: '',
+                    newPassword: '',
+                    confirmPassword: '',
+                });
+            } else {
+                toast.error(data.error || 'Şifre değiştirilemedi');
+            }
+        } catch (error) {
+            console.error('Şifre değiştirme hatası:', error);
+            toast.error('Şifre değiştirilirken bir hata oluştu');
+        } finally {
+            setIsChangingPassword(false);
         }
     };
 
@@ -702,6 +782,86 @@ export default function SiteSettings() {
                     </button>
                 </div>
             </form>
+
+            {/* Şifre Değiştirme Bölümü */}
+            <div className="mt-10">
+                <h2 className="mb-6 text-3xl font-bold text-white">Yönetici Şifresini Değiştir</h2>
+
+                <form onSubmit={handlePasswordSubmit} className="space-y-6">
+                    <div className="p-6 bg-gray-800 rounded-lg shadow-md">
+                        <h3 className="mb-4 text-xl font-semibold text-white">Şifre Değiştirme</h3>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label
+                                    htmlFor="currentPassword"
+                                    className="block mb-1 text-sm font-medium text-gray-400"
+                                >
+                                    Mevcut Şifre
+                                </label>
+                                <input
+                                    type="password"
+                                    id="currentPassword"
+                                    name="currentPassword"
+                                    className="w-full px-4 py-2 text-white bg-gray-700 rounded-md border border-gray-600 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                                    value={passwordData.currentPassword}
+                                    onChange={handlePasswordChange}
+                                    placeholder="Mevcut şifrenizi girin"
+                                />
+                            </div>
+
+                            <div>
+                                <label
+                                    htmlFor="newPassword"
+                                    className="block mb-1 text-sm font-medium text-gray-400"
+                                >
+                                    Yeni Şifre
+                                </label>
+                                <input
+                                    type="password"
+                                    id="newPassword"
+                                    name="newPassword"
+                                    className="w-full px-4 py-2 text-white bg-gray-700 rounded-md border border-gray-600 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                                    value={passwordData.newPassword}
+                                    onChange={handlePasswordChange}
+                                    placeholder="Yeni şifrenizi girin"
+                                />
+                                <p className="mt-1 text-sm text-gray-500">
+                                    Şifre en az 6 karakter uzunluğunda olmalıdır
+                                </p>
+                            </div>
+
+                            <div>
+                                <label
+                                    htmlFor="confirmPassword"
+                                    className="block mb-1 text-sm font-medium text-gray-400"
+                                >
+                                    Yeni Şifre (Tekrar)
+                                </label>
+                                <input
+                                    type="password"
+                                    id="confirmPassword"
+                                    name="confirmPassword"
+                                    className="w-full px-4 py-2 text-white bg-gray-700 rounded-md border border-gray-600 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                                    value={passwordData.confirmPassword}
+                                    onChange={handlePasswordChange}
+                                    placeholder="Yeni şifrenizi tekrar girin"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end">
+                        <button
+                            type="submit"
+                            className="px-6 py-2 text-white bg-green-600 rounded-md disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-800 hover:bg-green-700"
+                            disabled={isChangingPassword}
+                        >
+                            {isChangingPassword ? 'Şifre Değiştiriliyor...' : 'Şifreyi Değiştir'}
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     );
 }
