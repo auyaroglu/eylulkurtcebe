@@ -53,22 +53,22 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-900">
-            <div className="bg-gray-800 p-10 rounded-lg shadow-xl w-full max-w-md">
-                <div className="text-center mb-8">
-                    <h1 className="text-4xl font-bold text-white mb-2">Yönetim Paneli</h1>
+        <div className="min-h-screen flex justify-center items-center bg-gray-900">
+            <div className="w-full max-w-md p-10 bg-gray-800 rounded-lg shadow-xl">
+                <div className="mb-8 text-center">
+                    <h1 className="mb-2 text-4xl font-bold text-white">Yönetim Paneli</h1>
                     <p className="text-gray-400">Devam etmek için giriş yapın</p>
                 </div>
 
                 {error && (
-                    <div className="bg-red-500 text-white p-3 rounded-md mb-6 text-sm">{error}</div>
+                    <div className="p-3 mb-6 text-sm text-white bg-red-500 rounded-md">{error}</div>
                 )}
 
                 <form onSubmit={handleSubmit}>
                     <div className="mb-6">
                         <label
                             htmlFor="username"
-                            className="block text-gray-400 mb-2 text-sm font-medium"
+                            className="block mb-2 text-sm font-medium text-gray-400"
                         >
                             Kullanıcı Adı
                         </label>
@@ -77,7 +77,7 @@ export default function LoginPage() {
                             type="text"
                             value={username}
                             onChange={e => setUsername(e.target.value)}
-                            className="w-full px-4 py-3 rounded-md bg-gray-700 border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-4 py-3 text-white bg-gray-700 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             required
                         />
                     </div>
@@ -85,7 +85,7 @@ export default function LoginPage() {
                     <div className="mb-6">
                         <label
                             htmlFor="password"
-                            className="block text-gray-400 mb-2 text-sm font-medium"
+                            className="block mb-2 text-sm font-medium text-gray-400"
                         >
                             Şifre
                         </label>
@@ -94,7 +94,7 @@ export default function LoginPage() {
                             type="password"
                             value={password}
                             onChange={e => setPassword(e.target.value)}
-                            className="w-full px-4 py-3 rounded-md bg-gray-700 border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-4 py-3 text-white bg-gray-700 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             required
                         />
                     </div>
@@ -102,7 +102,7 @@ export default function LoginPage() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full px-4 py-3 font-bold text-white bg-blue-600 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-blue-700"
                     >
                         {loading ? 'Giriş Yapılıyor...' : 'Giriş Yap'}
                     </button>
@@ -111,7 +111,7 @@ export default function LoginPage() {
                 <div className="mt-8 text-center">
                     <Link
                         href="/"
-                        className="text-blue-400 hover:text-blue-300 text-sm transition-colors"
+                        className="text-sm text-blue-400 transition-colors hover:text-blue-300"
                     >
                         Ana Sayfaya Dön
                     </Link>

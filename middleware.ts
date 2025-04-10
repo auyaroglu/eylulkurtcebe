@@ -13,6 +13,8 @@ const intlMiddleware = createMiddleware({
     pathnames,
     // Kullanıcının tercih ettiği dili hatırla
     localePrefix: 'as-needed',
+    // Tarayıcı dilini önemseme, her zaman defaultLocale kullan
+    localeDetection: false,
 });
 
 // Ana middleware fonksiyonu
@@ -22,6 +24,11 @@ export default async function middleware(request: NextRequest) {
         const response = NextResponse.next();
         response.headers.set('X-Robots-Tag', 'noindex, nofollow');
         return response;
+    }
+
+    // Ana yola erişiyorsa ve herhangi bir dil belirtilmemişse, defaultLocale'e (tr) yönlendir
+    if (request.nextUrl.pathname === '/') {
+        return intlMiddleware(request);
     }
 
     // Diğer sayfalar için intl middleware'i çalıştır

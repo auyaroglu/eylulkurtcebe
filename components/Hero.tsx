@@ -80,7 +80,7 @@ export default function Hero({ contentData }: HeroProps) {
                         speed={1.2}
                         color="#48b6ff"
                         direction="top"
-                        className="inset-x-0 bottom-0 absolute z-[0] h-[300px] sm:h-[400px] overflow-hidden [mask-image:radial-gradient(ellipse_at_center_top_50%,white,transparent)] before:absolute before:inset-0 before:bg-[radial-gradient(ellipse_at_bottom_center,#3273ff,transparent_90%)] before:opacity-40 after:absolute left-0 w-full"
+                        className="inset-x-0 bottom-0 absolute z-[0] h-auto overflow-hidden [mask-image:radial-gradient(ellipse_at_center_top_50%,white,transparent)] before:absolute before:inset-0 before:bg-[radial-gradient(ellipse_at_bottom_center,#3273ff,transparent_90%)] before:opacity-40 after:absolute left-0 top-0 -right-0 w-full"
                     />
                 </div>
             </div>
