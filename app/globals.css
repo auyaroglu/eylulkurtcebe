@@ -1,0 +1,284 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+	--foreground-rgb: 0, 0, 0;
+	--background-start-rgb: 214, 219, 220;
+	--background-end-rgb: 255, 255, 255;
+	--scrollbar-thumb: #6366f1; /* indigo-500 */
+	--scrollbar-thumb-hover: #4f46e5; /* indigo-600 */
+	--scrollbar-track: rgba(15, 23, 42, 0.1); /* slate-900 with opacity */
+	--scrollbar-width: 8px;
+}
+
+@property --border-angle {
+	inherits: false;
+	initial-value: 0deg;
+	syntax: "<angle>";
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--foreground-rgb: 255, 255, 255;
+		--background-start-rgb: 0, 0, 0;
+		--background-end-rgb: 0, 0, 0;
+		--scrollbar-thumb: #6366f1; /* indigo-500 */
+		--scrollbar-thumb-hover: #818cf8; /* indigo-400 */
+		--scrollbar-track: rgba(255, 255, 255, 0.05);
+	}
+}
+
+html,
+body {
+	overflow-x: hidden;
+	position: relative;
+	width: 100%;
+	scrollbar-width: thin;
+	scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+body {
+	color: rgb(var(--foreground-rgb));
+	background: transparent;
+	min-height: 100vh;
+}
+
+/* Custom Scrollbar - webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+	width: var(--scrollbar-width);
+	height: var(--scrollbar-width);
+}
+
+::-webkit-scrollbar-track {
+	background: var(--scrollbar-track);
+	border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+	background: var(--scrollbar-thumb);
+	border-radius: 10px;
+	transition: background 0.2s ease-in-out;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: var(--scrollbar-thumb-hover);
+}
+
+::-webkit-scrollbar-corner {
+	background: transparent;
+}
+
+section {
+	position: relative;
+	z-index: 1;
+	background: transparent !important;
+	margin-bottom: 3rem; /* 48px default spacing between sections */
+}
+
+@media (min-width: 640px) {
+	section {
+		margin-bottom: 4rem; /* 64px spacing for sm breakpoint */
+	}
+}
+
+@media (min-width: 768px) {
+	section {
+		margin-bottom: 5rem; /* 80px spacing for md breakpoint */
+	}
+}
+
+@media (min-width: 1024px) {
+	section {
+		margin-bottom: 6rem; /* 96px spacing for lg breakpoint */
+	}
+}
+
+/* Hero section should not have bottom margin */
+section#hero {
+	margin-bottom: 0;
+}
+
+section > div {
+	background: rgba(255, 255, 255, 0.02);
+	backdrop-filter: blur(8px);
+	border: 1px solid rgba(255, 255, 255, 0.05);
+	border-radius: 16px;
+}
+
+#tsparticles {
+	position: fixed !important;
+	inset: 0;
+	z-index: 0 !important;
+	pointer-events: none;
+}
+
+@layer base {
+	body {
+		@apply text-[#111827] dark:text-[#f9fafb] min-h-screen;
+	}
+}
+
+@layer components {
+	.container {
+		@apply max-w-7xl mx-auto px-6 sm:px-8 lg:px-10;
+	}
+
+	.btn {
+		@apply inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-200;
+	}
+
+	.btn-secondary {
+		@apply bg-secondary hover:bg-secondary/90 focus:ring-secondary;
+	}
+
+	.section {
+		@apply py-12 sm:py-16 md:py-20 lg:py-24 relative;
+	}
+
+	.section > div {
+		@apply backdrop-blur-[8px] bg-white/[0.02] dark:bg-black/[0.02] rounded-lg p-6 sm:p-8 border border-white/5;
+	}
+
+	.heading {
+		@apply text-3xl md:text-4xl lg:text-5xl font-bold;
+	}
+
+	.subheading {
+		@apply text-xl md:text-2xl text-secondary dark:text-secondary/90 mt-4;
+	}
+
+	/* Custom scrollbar container style */
+	.custom-scrollbar {
+		@apply scrollbar-thin scrollbar-thumb-indigo-500 scrollbar-track-slate-900/10 dark:scrollbar-track-white/5 hover:scrollbar-thumb-indigo-600 dark:hover:scrollbar-thumb-indigo-400;
+	}
+}
+
+/* Scroll animations */
+.reveal {
+	opacity: 0;
+	transform: translateY(30px);
+	transition: all 0.8s ease;
+}
+
+.reveal.active {
+	opacity: 1;
+	transform: translateY(0);
+}
+
+/* React Toastify özel stilleri */
+.Toastify {
+	position: fixed;
+	z-index: 9999;
+	margin: 0;
+	padding: 0;
+	height: 0;
+	overflow: visible;
+}
+
+.Toastify__toast {
+	backdrop-filter: blur(10px);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+	margin-bottom: 1rem;
+	overflow: hidden;
+	border-radius: 12px !important;
+	min-height: auto !important;
+	padding: 12px 16px !important;
+}
+
+.Toastify__toast-container {
+	padding: 0 !important;
+	width: auto !important;
+	max-width: 420px;
+}
+
+.Toastify__toast-body {
+	font-family: var(--font-inter), sans-serif;
+	font-weight: 500;
+	padding: 4px 0;
+	margin: 0 !important;
+	font-size: 0.925rem;
+}
+
+.Toastify__toast--success {
+	background: linear-gradient(135deg, rgba(16, 185, 129, 0.85), rgba(5, 150, 105, 0.85));
+}
+
+.Toastify__toast--error {
+	background: linear-gradient(135deg, rgba(239, 68, 68, 0.85), rgba(220, 38, 38, 0.85));
+}
+
+.Toastify__toast--info {
+	background: linear-gradient(135deg, rgba(59, 130, 246, 0.85), rgba(37, 99, 235, 0.85));
+}
+
+.Toastify__toast--warning {
+	background: linear-gradient(135deg, rgba(245, 158, 11, 0.85), rgba(217, 119, 6, 0.85));
+}
+
+.Toastify__progress-bar {
+	height: 3px;
+	opacity: 0.7;
+	background: rgba(255, 255, 255, 0.7) !important;
+}
+
+.Toastify__toast-icon {
+	margin-right: 12px;
+}
+
+/* Kapatma düğmesi stilleri */
+.Toastify__close-button {
+	position: absolute !important;
+	top: 8px !important;
+	right: 8px !important;
+	opacity: 1 !important;
+	color: white !important;
+	background: rgba(255, 255, 255, 0.3) !important;
+	border-radius: 50% !important;
+	width: 22px !important;
+	height: 22px !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	padding: 0 !important;
+	transition: all 0.2s !important;
+	z-index: 9999 !important;
+}
+
+.Toastify__close-button:hover {
+	background: rgba(255, 255, 255, 0.5) !important;
+	transform: rotate(90deg);
+}
+
+.Toastify__close-button > svg {
+	width: 14px !important;
+	height: 14px !important;
+	fill: white !important;
+}
+
+.toast-message {
+	animation: toast-in 0.4s cubic-bezier(0.21, 1.02, 0.73, 1) forwards;
+}
+
+@keyframes toast-in {
+	0% {
+		transform: translateY(20px);
+		opacity: 0;
+	}
+	100% {
+		transform: translateY(0);
+		opacity: 1;
+	}
+}
+
+@keyframes toast-out {
+	0% {
+		transform: translateY(0);
+		opacity: 1;
+	}
+	100% {
+		transform: translateY(-20px);
+		opacity: 0;
+	}
+}

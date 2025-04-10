@@ -1,0 +1,175 @@
+{
+    "nav": {
+        "home": "Home",
+        "about": "About",
+        "skills": "Skills",
+        "projects": "Works",
+        "contact": "Contact"
+    },
+    "hero": {
+        "title": "Hi, I'm Eylül Kurtcebe",
+        "description": "As a ceramic artist and R&D chemist, I specialize in developing ceramic glazes and ceramic formulations. In every piece, I combine material knowledge with artistic vision.",
+        "contactButton": "Get in Touch",
+        "projectsButton": "View My Works"
+    },
+    "about": {
+        "title": "About Me",
+        "description": "I combine my passion for ceramic art with scientific research and innovative formulations. In each piece, I aim to explore the limits of the material and create new artistic expressions.",
+        "experience": {
+            "title": "Experience",
+            "description": "3 years as R&D Chemist at Gorbon Ceramics"
+        },
+        "education": {
+            "title": "Education",
+            "description": "MFA, Ceramic Arts, Dokuz Eylül University"
+        }
+    },
+    "skills": {
+        "title": "My Expertise",
+        "description": "Ceramic arts and technical skills",
+        "categories": {
+            "frontend": {
+                "title": "Ceramic Techniques",
+                "skills": [
+                    { "name": "Glaze Formulation", "level": 95 },
+                    { "name": "Pottery", "level": 90 },
+                    { "name": "Casting Techniques", "level": 95 },
+                    { "name": "Hand Building", "level": 85 },
+                    { "name": "Raku Firing", "level": 85 },
+                    { "name": "High-fire", "level": 90 }
+                ]
+            },
+            "backend": {
+                "title": "Material Knowledge",
+                "skills": [
+                    { "name": "Glaze Chemistry", "level": 95 },
+                    { "name": "Pigment Development", "level": 90 },
+                    { "name": "Clay Research", "level": 85 },
+                    { "name": "Raw Material Analysis", "level": 90 }
+                ]
+            },
+            "database": {
+                "title": "Design",
+                "skills": [
+                    { "name": "Industrial Design", "level": 85 },
+                    { "name": "3D Modeling", "level": 75 },
+                    { "name": "Surface Decoration", "level": 90 }
+                ]
+            }
+        }
+    },
+    "projects": {
+        "title": "My Works",
+        "description": "Some notable works in ceramic art",
+        "demo": "Details",
+        "viewAll": "View All Works",
+        "pagination": {
+            "previous": "Previous",
+            "next": "Next",
+            "page": "Page",
+            "of": "of"
+        },
+        "projectsPage": {
+            "title": "All My Works",
+            "description": "Explore all my creations in ceramic art",
+            "backToHome": "Back to Home",
+            "noProjects": "No works found yet.",
+            "filters": {
+                "all": "All",
+                "title": "Filter"
+            }
+        },
+        "detail": {
+            "backToProjects": "Back to Works",
+            "technologies": "Techniques Used",
+            "gallery": "Gallery",
+            "relatedProjects": "Related Works"
+        },
+        "idMapping": {
+            "proje1": "project1",
+            "proje2": "project2",
+            "proje3": "project3",
+            "proje4": "project4"
+        },
+        "list": [
+            {
+                "id": "project1",
+                "originalId": "proje1",
+                "title": "Crystalline Glaze Collection",
+                "description": "A collection of ceramic vases featuring specially formulated crystalline glazes.",
+                "images": [
+                    "images/projects/project1/1.jpeg",
+                    "images/projects/project1/2.jpeg",
+                    "images/projects/project1/3.jpeg",
+                    "images/projects/project1/4.jpeg"
+                ],
+                "technologies": ["Crystalline Glaze", "High-fire", "Porcelain"]
+            },
+            {
+                "id": "project2",
+                "originalId": "proje2",
+                "title": "Textural Explorations",
+                "description": "Special glaze techniques developed to achieve different surface textures.",
+                "images": [
+                    "images/projects/project2/1.jpeg",
+                    "images/projects/project2/2.jpeg",
+                    "images/projects/project2/3.jpeg",
+                    "images/projects/project2/4.jpeg"
+                ],
+                "technologies": ["Matte Glaze", "Textural Effects", "Celadon"]
+            },
+            {
+                "id": "project3",
+                "originalId": "proje3",
+                "title": "Industrial Ceramic Series",
+                "description": "Industrial ceramic collection developed for Gorbon Ceramics.",
+                "images": [
+                    "images/projects/project3/1.jpeg",
+                    "images/projects/project3/2.jpeg",
+                    "images/projects/project3/3.jpeg",
+                    "images/projects/project3/4.jpeg"
+                ],
+                "technologies": [
+                    "Industrial Production",
+                    "Durable Glazes",
+                    "Commercial Formulation"
+                ]
+            },
+            {
+                "id": "project4",
+                "originalId": "proje4",
+                "title": "Glaze Research",
+                "description": "Glaze studies developed for different color and surface properties.",
+                "images": [
+                    "images/projects/project4/1.jpeg",
+                    "images/projects/project4/2.jpeg",
+                    "images/projects/project4/3.jpeg",
+                    "images/projects/project4/4.jpeg"
+                ],
+                "technologies": ["Pigment Research", "Glaze Chemistry", "Surface Techniques"]
+            }
+        ]
+    },
+    "contact": {
+        "title": "Contact",
+        "description": "You can use the form below to get in touch with me or reach out through my social media accounts.",
+        "info": {
+            "title": "Contact Information",
+            "location": "Izmir, Turkey"
+        },
+        "form": {
+            "title": "Contact Form",
+            "name": "Your Name",
+            "email": "Your Email",
+            "message": "Your Message",
+            "submit": "Send"
+        }
+    },
+    "footer": {
+        "description": "Specialized in developing ceramic and glaze formulations, providing artistic and industrial solutions.",
+        "quickLinks": "Quick Links",
+        "contact": "Contact",
+        "location": "Izmir, Turkey",
+        "rights": "All rights reserved."
+    }
+}

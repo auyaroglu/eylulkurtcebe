@@ -1,0 +1,171 @@
+{
+    "nav": {
+        "home": "Ana Sayfa",
+        "about": "Hakkımda",
+        "skills": "Yetenekler",
+        "projects": "Eserler",
+        "contact": "İletişim"
+    },
+    "hero": {
+        "title": "Merhaba, Ben Eylül Kurtcebe",
+        "description": "Seramik sanatçısı ve Ar-Ge kimyageri olarak seramik ve seramik sırlarının geliştirilmesi konusunda uzmanım. Her eserimde malzeme bilgisi ve sanatsal vizyonu bir araya getiriyorum.",
+        "contactButton": "İletişime Geç",
+        "projectsButton": "Eserlerimi Gör"
+    },
+    "about": {
+        "title": "Hakkımda",
+        "description": "Seramik sanatına olan tutkumu bilimsel araştırma ve yenilikçi formüllerle birleştiriyorum. Her eserimde malzemenin sınırlarını keşfetmeyi ve yeni sanatsal ifadeler yaratmayı hedefliyorum.",
+        "experience": {
+            "title": "Deneyim",
+            "description": "3 yıllık Ar-Ge Kimyageri, Gorbon Ceramics"
+        },
+        "education": {
+            "title": "Eğitim",
+            "description": "MFA, Seramik Sanatları ve Seramik, DEÜ"
+        }
+    },
+    "skills": {
+        "title": "Uzmanlık Alanlarım",
+        "description": "Seramik sanatı ve teknik becerilerim",
+        "categories": {
+            "frontend": {
+                "title": "Seramik Teknikleri",
+                "skills": [
+                    { "name": "Sır Formülasyonu", "level": 95 },
+                    { "name": "Çömlekçilik", "level": 90 },
+                    { "name": "Döküm Teknikleri", "level": 95 },
+                    { "name": "Elle Şekillendirme", "level": 85 },
+                    { "name": "Raku Pişirimi", "level": 85 },
+                    { "name": "Sıcak Pişirim", "level": 90 }
+                ]
+            },
+            "backend": {
+                "title": "Malzeme Bilgisi",
+                "skills": [
+                    { "name": "Sır Kimyası", "level": 95 },
+                    { "name": "Pigment Geliştirme", "level": 90 },
+                    { "name": "Kil Araştırmaları", "level": 85 },
+                    { "name": "Hammadde Analizi", "level": 90 }
+                ]
+            },
+            "database": {
+                "title": "Tasarım",
+                "skills": [
+                    { "name": "Endüstriyel Tasarım", "level": 85 },
+                    { "name": "3D Modelleme", "level": 75 },
+                    { "name": "Yüzey Dekorasyonu", "level": 90 }
+                ]
+            }
+        }
+    },
+    "projects": {
+        "title": "Eserlerim",
+        "description": "Seramik sanatındaki bazı önemli çalışmalarım",
+        "demo": "Detaylar",
+        "viewAll": "Tüm Eserleri Gör",
+        "pagination": {
+            "previous": "Önceki",
+            "next": "Sonraki",
+            "page": "Sayfa",
+            "of": "/"
+        },
+        "projectsPage": {
+            "title": "Tüm Eserlerim",
+            "description": "Seramik sanatında geliştirdiğim tüm eserlerimi keşfedin",
+            "backToHome": "Ana Sayfaya Dön",
+            "noProjects": "Henüz eser bulunamadı.",
+            "filters": {
+                "all": "Tümü",
+                "title": "Filtrele"
+            }
+        },
+        "detail": {
+            "backToProjects": "Eserlere Dön",
+            "technologies": "Kullanılan Teknikler",
+            "gallery": "Galeri",
+            "relatedProjects": "Benzer Eserler"
+        },
+        "idMapping": {
+            "project1": "proje1",
+            "project2": "proje2",
+            "project3": "proje3",
+            "project4": "proje4"
+        },
+        "list": [
+            {
+                "id": "proje1",
+                "originalId": "project1",
+                "title": "Kristal Sır Koleksiyonu",
+                "description": "Özel formüle edilmiş kristal sırlarıyla hazırlanmış seramik vazo koleksiyonu.",
+                "images": [
+                    "images/projects/project1/1.jpeg",
+                    "images/projects/project1/2.jpeg",
+                    "images/projects/project1/3.jpeg",
+                    "images/projects/project1/4.jpeg"
+                ],
+                "technologies": ["Kristal Sır", "Yüksek Ateş", "Porselen"]
+            },
+            {
+                "id": "proje2",
+                "originalId": "project2",
+                "title": "Dokusal Araştırmalar",
+                "description": "Farklı yüzey dokuları elde etmek için geliştirilen özel sır teknikleri.",
+                "images": [
+                    "images/projects/project2/1.jpeg",
+                    "images/projects/project2/2.jpeg",
+                    "images/projects/project2/3.jpeg",
+                    "images/projects/project2/4.jpeg"
+                ],
+                "technologies": ["Mat Sır", "Dokusal Efektler", "Seladon"]
+            },
+            {
+                "id": "proje3",
+                "originalId": "project3",
+                "title": "Endüstriyel Seramik Serisi",
+                "description": "Gorbon Ceramics için geliştirilen endüstriyel seramik koleksiyonu.",
+                "images": [
+                    "images/projects/project3/1.jpeg",
+                    "images/projects/project3/2.jpeg",
+                    "images/projects/project3/3.jpeg",
+                    "images/projects/project3/4.jpeg"
+                ],
+                "technologies": ["Endüstriyel Üretim", "Dayanıklı Sırlar", "Ticari Formülasyon"]
+            },
+            {
+                "id": "proje4",
+                "originalId": "project4",
+                "title": "Sır Araştırmaları",
+                "description": "Farklı renk ve yüzey özellikleri için geliştirilen sır çalışmaları.",
+                "images": [
+                    "images/projects/project4/1.jpeg",
+                    "images/projects/project4/2.jpeg",
+                    "images/projects/project4/3.jpeg",
+                    "images/projects/project4/4.jpeg"
+                ],
+                "technologies": ["Pigment Araştırması", "Sır Kimyası", "Yüzey Teknikleri"]
+            }
+        ]
+    },
+    "contact": {
+        "title": "İletişim",
+        "description": "Benimle iletişime geçmek için aşağıdaki formu kullanabilir veya sosyal medya hesaplarımdan bana ulaşabilirsiniz.",
+        "info": {
+            "title": "İletişim Bilgileri",
+            "location": "İzmir, Türkiye"
+        },
+        "form": {
+            "title": "İletişim Formu",
+            "name": "Adınız",
+            "email": "E-posta Adresiniz",
+            "message": "Mesajınız",
+            "submit": "Gönder"
+        }
+    },
+    "footer": {
+        "description": "Seramik ve seramik sırlarının geliştirilmesi konusunda uzmanlaşmış, sanatsal ve endüstriyel çözümler sunuyorum.",
+        "quickLinks": "Hızlı Bağlantılar",
+        "contact": "İletişim",
+        "location": "İzmir, Türkiye",
+        "rights": "Tüm hakları saklıdır."
+    }
+}
