@@ -148,9 +148,28 @@ section > div {
 		@apply text-xl md:text-2xl text-secondary dark:text-secondary/90 mt-4;
 	}
 
-	/* Custom scrollbar container style */
+	/* Custom scrollbar container style - düzeltilmiş */
 	.custom-scrollbar {
-		@apply scrollbar-thin scrollbar-thumb-indigo-500 scrollbar-track-slate-900/10 dark:scrollbar-track-white/5 hover:scrollbar-thumb-indigo-600 dark:hover:scrollbar-thumb-indigo-400;
+		scrollbar-width: thin;
+	}
+
+	.custom-scrollbar::-webkit-scrollbar {
+		width: var(--scrollbar-width);
+		height: var(--scrollbar-width);
+	}
+
+	.custom-scrollbar::-webkit-scrollbar-track {
+		background: var(--scrollbar-track);
+		border-radius: 10px;
+	}
+
+	.custom-scrollbar::-webkit-scrollbar-thumb {
+		background: var(--scrollbar-thumb);
+		border-radius: 10px;
+	}
+
+	.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+		background: var(--scrollbar-thumb-hover);
 	}
 }
 

@@ -32,6 +32,7 @@ export interface IContent extends Document {
         description: string;
         categories: {
             frontend: {
+                // Seramik Teknikleri
                 title: string;
                 skills: Array<{
                     name: string;
@@ -39,6 +40,7 @@ export interface IContent extends Document {
                 }>;
             };
             backend: {
+                // Malzeme Bilgisi
                 title: string;
                 skills: Array<{
                     name: string;
@@ -46,6 +48,7 @@ export interface IContent extends Document {
                 }>;
             };
             database: {
+                // Tasarım
                 title: string;
                 skills: Array<{
                     name: string;
@@ -53,6 +56,15 @@ export interface IContent extends Document {
                 }>;
             };
         };
+    };
+    expertise: {
+        title: string;
+        description: string;
+        categories: Array<{
+            title: string;
+            description: string;
+            icon?: string;
+        }>;
     };
     contact: {
         title: string;
@@ -155,6 +167,17 @@ const ContentSchema: Schema = new Schema(
                     ],
                 },
             },
+        },
+        expertise: {
+            title: { type: String, required: false },
+            description: { type: String, required: false },
+            categories: [
+                {
+                    title: { type: String, required: false },
+                    description: { type: String, required: false },
+                    icon: { type: String, required: false },
+                },
+            ],
         },
         contact: {
             title: { type: String, required: true },

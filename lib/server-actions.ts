@@ -4,7 +4,7 @@ import { connectToDatabase } from './db';
 import Content from '@/models/Content';
 import Project from '@/models/Project';
 import ProjectTranslation from '@/models/ProjectTranslation';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { cache } from 'react';
 import { cookies } from 'next/headers';
 import { unlink, access } from 'fs/promises';
@@ -468,11 +468,26 @@ export async function updateContent(locale: string, contentData: any) {
             new: true,
         });
 
-        // Temizlenecek yolları belirle
-        const pathsToRevalidate = ['/', `/${locale}`, `/${locale}/projects`];
+        // Temizlenecek yolları belirle - Hem kök yolu hem de dil-spesifik yolları temizle
+        const pathsToRevalidate = [
+            '/',
+            `/${locale}`,
+            `/${locale}/projects`,
+            '/api/admin/content',
+            `/api/admin/content/${locale}`,
+        ];
 
-        // Ön belleği temizle
-        await revalidatePaths(pathsToRevalidate);
+        // Ön belleği kapsamlı şekilde temizle
+        // Her yol için hem layout hem de page revalidasyonu uygula
+        for (const path of pathsToRevalidate) {
+            revalidatePath(path, 'layout');
+            revalidatePath(path, 'page');
+        }
+
+        // İçerik etiketini de temizle
+        revalidateTag('content');
+
+        console.log(`${locale} içerikleri güncellendi ve önbellekler temizlendi`);
 
         // Sonucu düz nesneye dönüştür
         return convertToPlainObject(result);

@@ -4,6 +4,7 @@ import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
 import About from '@/components/About';
 import Skills from '@/components/Skills';
+import Expertise from '@/components/Expertise';
 import Projects from '@/components/Projects';
 import Contact from '@/components/Contact';
 import Footer from '@/components/Footer';
@@ -80,6 +81,7 @@ export default function PageContent({
             <Hero contentData={safeContent} />
             <About contentData={safeContent} />
             <Skills contentData={safeContent} />
+            <Expertise contentData={safeContent} />
             <Projects projectsData={safeProjects} lng={locale} />
             <Contact contentData={safeContent} siteConfig={safeSiteConfig} />
             <Footer contentData={safeContent} />
