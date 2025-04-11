@@ -134,6 +134,9 @@ export default function ContentManagement() {
             });
 
             if (response.ok) {
+                // İçerik güncellendikten sonra önbelleği temizle
+                await revalidateCache(activeLocale);
+
                 setSaveStatus('success');
                 setTimeout(() => setSaveStatus('idle'), 3000);
             } else {
@@ -147,6 +150,73 @@ export default function ContentManagement() {
         } finally {
             setIsSaving(false);
         }
+    };
+
+    // Önbelleği temizleme fonksiyonu
+    const revalidateCache = async locale => {
+        try {
+            const token = localStorage.getItem('adminToken');
+            if (!token) return;
+
+            // İçerik ve site ayarları etiketlerini temizle
+            const tagsToRevalidate = [
+                'content',
+                'navigation',
+                `content-${locale}`,
+                `navigation-${locale}`,
+                'site-content',
+                'footer',
+                'site-settings',
+                'site-config',
+            ];
+
+            // Her bir etiketi ayrı ayrı revalidate et
+            for (const tag of tagsToRevalidate) {
+                try {
+                    const tagResponse = await fetch(`/api/admin/revalidate?tag=${tag}`, {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    });
+
+                    if (tagResponse.ok) {
+                        console.log(`${tag} etiketi başarıyla temizlendi.`);
+                    }
+                } catch (tagError) {
+                    console.error(`${tag} etiketi temizlenirken hata:`, tagError);
+                }
+            }
+
+            // Yolları da revalidate et
+            const response = await fetch(`/api/admin/revalidate?locale=${locale}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (response.ok) {
+                console.log('Önbellek başarıyla temizlendi.');
+                return true;
+            } else {
+                console.error('Önbellek temizleme hatası.');
+                return false;
+            }
+        } catch (error) {
+            console.error('Önbellek temizleme sırasında hata:', error);
+            return false;
+        }
+    };
+
+    // Site ön yüzünü yeni sekmede açma fonksiyonu
+    const previewSite = async () => {
+        const prevCacheCleared = await revalidateCache(activeLocale);
+
+        if (prevCacheCleared) {
+            console.log('Ön izleme için önbellek temizlendi.');
+        }
+
+        // Yeni sekmede site önizlemesini aç
+        window.open(`/${activeLocale}`, '_blank');
     };
 
     // İçerik değişikliklerini takip et
@@ -365,6 +435,13 @@ export default function ContentManagement() {
                                     Hata Oluştu
                                 </div>
                             )}
+
+                            <button
+                                onClick={previewSite}
+                                className="px-4 py-2 mr-2 text-sm font-medium text-white bg-green-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 hover:bg-green-700"
+                            >
+                                Sitede Görüntüle
+                            </button>
 
                             <button
                                 onClick={handleSave}

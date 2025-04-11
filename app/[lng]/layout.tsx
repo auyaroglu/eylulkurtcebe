@@ -8,9 +8,10 @@ import { setRequestLocale } from 'next-intl/server';
 import { connectToDatabase } from '@/lib/db';
 import mongoose from 'mongoose';
 
-// Site ayarlarını getiren fonksiyon
-async function getSiteSettings() {
+// Site ayarlarını etiketli fetch ile getiren fonksiyon
+async function getSiteSettingsWithTags() {
     try {
+        // Mongoose bağlantısını kur
         await connectToDatabase();
 
         // Doğrudan veritabanına eriş (model kullanmadan)
@@ -45,6 +46,7 @@ async function getSiteSettings() {
         return JSON.parse(JSON.stringify(config));
     } catch (error) {
         console.error('Site ayarları alınırken hata:', error);
+        // Varsayılan değerler
         return {
             logo: '/logo.webp',
             robotsEnabled: false,
@@ -80,7 +82,7 @@ export async function generateMetadata({ params }: { params: { lng: string } }):
     setRequestLocale(lng);
 
     // Site ayarlarını al
-    const siteSettings = await getSiteSettings();
+    const siteSettings = await getSiteSettingsWithTags();
     const robotsEnabled = siteSettings?.robotsEnabled === true;
     const robotsContent = robotsEnabled ? 'index, follow' : 'noindex, nofollow';
 

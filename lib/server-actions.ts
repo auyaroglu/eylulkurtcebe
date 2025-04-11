@@ -475,19 +475,47 @@ export async function updateContent(locale: string, contentData: any) {
             `/${locale}/projects`,
             '/api/admin/content',
             `/api/admin/content/${locale}`,
+            `/api/content/${locale}`,
+            `/api/content`,
+            `/api/site-settings`,
         ];
 
         // Ön belleği kapsamlı şekilde temizle
         // Her yol için hem layout hem de page revalidasyonu uygula
         for (const path of pathsToRevalidate) {
-            revalidatePath(path, 'layout');
-            revalidatePath(path, 'page');
+            try {
+                revalidatePath(path, 'layout');
+                revalidatePath(path, 'page');
+                console.log(`Sayfa önbelleği temizlendi: ${path}`);
+            } catch (error) {
+                console.error(`Sayfa önbelleği temizleme hatası (${path}):`, error);
+            }
         }
 
-        // İçerik etiketini de temizle
-        revalidateTag('content');
+        // İçerik ile ilgili tüm etiketleri temizle
+        const tagsToRevalidate = [
+            'content',
+            'navigation',
+            `content-${locale}`,
+            `navigation-${locale}`,
+            'site-content',
+            'footer',
+            'site-settings',
+            'site-config',
+        ];
+
+        for (const tag of tagsToRevalidate) {
+            try {
+                revalidateTag(tag);
+                console.log(`Etiket önbelleği temizlendi: ${tag}`);
+            } catch (tagError) {
+                console.error(`Etiket önbelleği temizleme hatası (${tag}):`, tagError);
+            }
+        }
 
         console.log(`${locale} içerikleri güncellendi ve önbellekler temizlendi`);
+        console.log(`Yollar yeniden doğrulandı: ${pathsToRevalidate.join(', ')}`);
+        console.log(`Etiketler yeniden doğrulandı: ${tagsToRevalidate.join(', ')}`);
 
         // Sonucu düz nesneye dönüştür
         return convertToPlainObject(result);

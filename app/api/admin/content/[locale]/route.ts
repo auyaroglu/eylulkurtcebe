@@ -3,6 +3,7 @@ import { connectToDatabase } from '@/lib/db';
 import mongoose from 'mongoose';
 import Content from '@/models/Content';
 import { withAuth } from '@/lib/auth-middleware';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
 // İçerik getirme
 async function getHandler(
@@ -69,14 +70,64 @@ async function putHandler(
             throw new Error('Veritabanı bağlantısı kurulamadı');
         }
 
+        // İçeriği güncelle
         const result = await db.collection('contents').updateOne({ locale }, { $set: contentData });
 
         if (result.matchedCount === 0) {
             return NextResponse.json({ error: 'İçerik bulunamadı' }, { status: 404 });
         }
 
-        // Güncellenen içeriği dönelim
+        // Güncellenen içeriği al
         const updatedContent = await db.collection('contents').findOne({ locale });
+
+        // Temizlenecek yolları belirle
+        const pathsToRevalidate = [
+            '/',
+            `/${locale}`,
+            `/${locale}/projects`,
+            '/api/admin/content',
+            `/api/admin/content/${locale}`,
+            `/api/content/${locale}`,
+            `/api/content`,
+            `/api/site-settings`,
+        ];
+
+        // Önbelleği kapsamlı şekilde temizle
+        // Her yol için hem layout hem de page revalidasyonu uygula
+        for (const path of pathsToRevalidate) {
+            try {
+                revalidatePath(path, 'layout');
+                revalidatePath(path, 'page');
+                console.log(`Sayfa önbelleği temizlendi: ${path}`);
+            } catch (revalidateError) {
+                console.error(`Sayfa önbelleği temizleme hatası (${path}):`, revalidateError);
+            }
+        }
+
+        // Tüm ilgili etiketleri temizle
+        const tagsToRevalidate = [
+            'content',
+            'navigation',
+            `content-${locale}`,
+            `navigation-${locale}`,
+            'site-content',
+            'footer',
+            'site-settings',
+            'site-config',
+        ];
+
+        for (const tag of tagsToRevalidate) {
+            try {
+                revalidateTag(tag);
+                console.log(`Etiket önbelleği temizlendi: ${tag}`);
+            } catch (tagError) {
+                console.error(`Etiket önbelleği temizleme hatası (${tag}):`, tagError);
+            }
+        }
+
+        console.log(`${locale} içeriği güncellendi ve önbellekler temizlendi`);
+
+        // Güncellenmiş içeriği döndür
         return NextResponse.json(updatedContent);
     } catch (error: any) {
         console.error('İçerik güncelleme hatası:', error);

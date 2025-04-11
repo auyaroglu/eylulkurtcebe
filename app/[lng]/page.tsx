@@ -14,29 +14,37 @@ export const dynamicParams = false;
 // Sayfa önbelleğini kontrol etme süresi - Daha sık yenileme için 30 saniyeye düşürdük
 export const revalidate = 30;
 
-// Site ayarlarını getiren yardımcı fonksiyon
+// Site ayarlarını getiren yardımcı fonksiyon - Fetch API ile etiketli kullanım örneği
 async function getSiteConfig() {
     try {
-        await connectToDatabase();
+        // Site ayarlarını API'den al (doğru URL ile)
+        // Tam URL oluştur
+        const baseUrl =
+            process.env.NEXT_PUBLIC_API_URL ||
+            (process.env.NODE_ENV === 'production'
+                ? 'https://eylulkurtcebe.com'
+                : 'http://localhost:3000');
 
-        // Doğrudan mongoose bağlantısı ile koleksiyona erişim
-        const db = mongoose.connection;
-        const siteConfigCollection = db.collection('siteconfigs');
-        const config = await siteConfigCollection.findOne({});
+        // Etiketli fetch ile site ayarlarını al
+        const siteConfig = await fetch(`${baseUrl}/api/site-settings`, {
+            next: {
+                // Etiketlerle önbellekleme
+                tags: ['site-settings', 'site-config'],
+                // 60 saniyede bir yeniden doğrulama
+                revalidate: 60,
+            },
+        }).then(res => {
+            if (!res.ok) {
+                throw new Error('Site ayarları alınamadı');
+            }
+            return res.json();
+        });
 
-        if (!config) {
-            return {
-                displayEmail: 'info@eylulkurtcebe.com',
-                contactEmail: 'info@eylulkurtcebe.com',
-                robotsEnabled: false,
-                pagination: { itemsPerPage: 9 },
-            };
-        }
-
-        // MongoDB verilerini düz nesneye dönüştür
-        return JSON.parse(JSON.stringify(config));
+        return siteConfig;
     } catch (error) {
         console.error('Site ayarları alınamadı:', error);
+
+        // Hata durumunda varsayılan değerler
         return {
             displayEmail: 'info@eylulkurtcebe.com',
             contactEmail: 'info@eylulkurtcebe.com',

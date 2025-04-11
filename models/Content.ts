@@ -7,6 +7,7 @@ export interface IContent extends Document {
         links: Array<{
             label: string;
             url: string;
+            order: number;
         }>;
     };
     hero: {
@@ -114,6 +115,7 @@ const ContentSchema: Schema = new Schema(
                 {
                     label: { type: String, required: true },
                     url: { type: String, required: true },
+                    order: { type: Number, default: 0 },
                 },
             ],
         },
