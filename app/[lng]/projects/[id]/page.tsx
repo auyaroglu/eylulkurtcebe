@@ -12,7 +12,7 @@ import { connectToDatabase } from '@/lib/db';
 import mongoose from 'mongoose';
 
 // Sayfa önbelleğini kontrol etme süresi
-export const revalidate = 30; // 30 saniyede bir yeniden doğrula
+export const revalidate = 10; // 10 saniyede bir yeniden doğrula, daha hızlı erişim için
 
 // Statik olarak oluşturulacak dil yollarını belirle
 export const dynamicParams = false;

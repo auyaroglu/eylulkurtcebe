@@ -62,8 +62,8 @@ function convertToPlainObject(data: any): any {
 }
 
 /**
- * Belirli bir dil için içerik verilerini getirir
- * @param locale Dil kodu (tr, en)
+ * Veritabanından gelen dataları önbelleğe alarak tekrar kullanım için saklar
+ * Bu sayede aynı veriler için tekrar tekrar veritabanına erişim engellenir
  */
 export const getContentFromDB = cache(async (locale: string) => {
     try {
@@ -157,6 +157,21 @@ export const getProjectsFromDB = cache(async (locale: string, projectId?: string
 });
 
 /**
+ * Belirli bir yolu yeniden doğrulayan ve ön belleği temizleyen yardımcı fonksiyon
+ * @param paths - Yeniden doğrulanacak yollar dizisi
+ */
+async function revalidatePaths(paths: string[]) {
+    for (const path of paths) {
+        try {
+            revalidatePath(path, 'layout');
+            console.log(`Sayfa önbelleği temizlendi: ${path}`);
+        } catch (error) {
+            console.error(`Sayfa önbelleği temizleme hatası (${path}):`, error);
+        }
+    }
+}
+
+/**
  * Yeni proje ekleyen fonksiyon
  * @param projectData - Proje verileri
  */
@@ -184,11 +199,16 @@ export async function addProject(projectData: any) {
         // @ts-ignore - Mongoose tip sorunlarını görmezden gel
         const result = await Project.create(projectData);
 
-        // Cache'i temizle - tüm ilgili sayfaları yeniden doğrula
-        revalidatePath('/', 'layout');
-        revalidatePath(`/${projectData.locale}`, 'layout');
-        revalidatePath(`/${projectData.locale}/projects`, 'layout');
-        revalidatePath(`/${projectData.locale}/projects/${projectData.id}`, 'layout');
+        // Temizlenecek yolları belirle
+        const pathsToRevalidate = [
+            '/',
+            `/${projectData.locale}`,
+            `/${projectData.locale}/projects`,
+            `/${projectData.locale}/projects/${projectData.id}`,
+        ];
+
+        // Ön belleği temizle
+        await revalidatePaths(pathsToRevalidate);
 
         // Sonucu düz nesneye dönüştür
         return convertToPlainObject(result);
@@ -235,6 +255,14 @@ export async function updateProject(projectId: string, locale: string, updateDat
                 updateData.technologies = [];
         }
 
+        // Temizlenecek yolları belirle
+        const pathsToRevalidate = [
+            '/',
+            `/${locale}`,
+            `/${locale}/projects`,
+            `/${locale}/projects/${projectId}`,
+        ];
+
         // Görseller değiştirilmişse ve originalId varsa, aynı projenin diğer dildeki versiyonunda da güncelle
         if (updateData.images && updateData.images.length > 0 && currentProject.originalId) {
             const otherLocale = locale === 'tr' ? 'en' : 'tr';
@@ -252,25 +280,19 @@ export async function updateProject(projectId: string, locale: string, updateDat
                     { $set: { images: updateData.images } }
                 );
                 console.log(`${otherLocale} dilindeki projenin görselleri güncellendi`);
+
+                // Diğer dildeki yolları da temizlenecek yollara ekle
+                pathsToRevalidate.push(`/${otherLocale}`);
+                pathsToRevalidate.push(`/${otherLocale}/projects`);
+
+                if (otherProject.id) {
+                    pathsToRevalidate.push(`/${otherLocale}/projects/${otherProject.id}`);
+                }
             }
         }
 
-        // Status değişimi durumunda, originalId ile ilişkili diğer dildeki projelerde de aynı değişiklik yapılsın mı?
-        // (Eğer istenirse burada diğer dildeki projelerin de status'unu güncelleyebiliriz)
-
-        // @ts-ignore - Mongoose tip sorunlarını görmezden gel
-        const result = await Project.findOneAndUpdate({ id: projectId, locale }, updateData, {
-            new: true,
-        });
-
-        // Cache'i temizle - tüm ilgili sayfaları yeniden doğrula
-        revalidatePath('/', 'layout');
-        revalidatePath(`/${locale}`, 'layout');
-        revalidatePath(`/${locale}/projects`, 'layout');
-        revalidatePath(`/${locale}/projects/${projectId}`, 'layout');
-
-        // Görseller güncellendiğinde veya status değişince diğer dildeki sayfaları da yenile
-        if ((updateData.images || updateData.status !== undefined) && currentProject.originalId) {
+        // Status değişimi durumunda, originalId ile ilişkili diğer dildeki projelerde de status kısmında yollara ekle
+        if (updateData.status !== undefined && currentProject.originalId) {
             const otherLocale = locale === 'tr' ? 'en' : 'tr';
             // @ts-ignore - Mongoose tip sorunlarını görmezden gel
             const otherProject = await Project.findOne({
@@ -279,11 +301,22 @@ export async function updateProject(projectId: string, locale: string, updateDat
             });
 
             if (otherProject) {
-                revalidatePath(`/${otherLocale}`, 'layout');
-                revalidatePath(`/${otherLocale}/projects`, 'layout');
-                revalidatePath(`/${otherLocale}/projects/${otherProject.id}`, 'layout');
+                pathsToRevalidate.push(`/${otherLocale}`);
+                pathsToRevalidate.push(`/${otherLocale}/projects`);
+
+                if (otherProject.id) {
+                    pathsToRevalidate.push(`/${otherLocale}/projects/${otherProject.id}`);
+                }
             }
         }
+
+        // @ts-ignore - Mongoose tip sorunlarını görmezden gel
+        const result = await Project.findOneAndUpdate({ id: projectId, locale }, updateData, {
+            new: true,
+        });
+
+        // Ön belleği temizle
+        await revalidatePaths(pathsToRevalidate);
 
         // Sonucu düz nesneye dönüştür
         return convertToPlainObject(result);
@@ -315,6 +348,16 @@ export async function deleteProject(projectId: string, locale: string) {
                 project.images?.length || 0
             }`
         );
+
+        // Temizlenecek yolları belirle
+        const pathsToRevalidate = ['/', `/${locale}`, `/${locale}/projects`];
+
+        // Diğer dildeki projeyi de yeniden doğrula
+        if (project.originalId) {
+            const otherLocale = locale === 'tr' ? 'en' : 'tr';
+            pathsToRevalidate.push(`/${otherLocale}`);
+            pathsToRevalidate.push(`/${otherLocale}/projects`);
+        }
 
         // Projeyi veritabanından sil
         // @ts-ignore - Mongoose tip sorunlarını görmezden gel
@@ -354,10 +397,8 @@ export async function deleteProject(projectId: string, locale: string) {
             console.log('[SERVER-ACTION SİLME] Silinecek görsel yok');
         }
 
-        // Cache'i temizle - tüm ilgili sayfaları yeniden doğrula
-        revalidatePath('/', 'layout');
-        revalidatePath(`/${locale}`, 'layout');
-        revalidatePath(`/${locale}/projects`, 'layout');
+        // Ön belleği temizle
+        await revalidatePaths(pathsToRevalidate);
 
         // Sonucu düz nesneye dönüştür
         return convertToPlainObject({
@@ -427,9 +468,11 @@ export async function updateContent(locale: string, contentData: any) {
             new: true,
         });
 
-        // Cache'i temizle - tüm ilgili sayfaları yeniden doğrula
-        revalidatePath('/', 'layout');
-        revalidatePath(`/${locale}`, 'layout');
+        // Temizlenecek yolları belirle
+        const pathsToRevalidate = ['/', `/${locale}`, `/${locale}/projects`];
+
+        // Ön belleği temizle
+        await revalidatePaths(pathsToRevalidate);
 
         // Sonucu düz nesneye dönüştür
         return convertToPlainObject(result);
@@ -448,8 +491,8 @@ export async function revalidateData(path: string) {
         revalidatePath(path, 'layout');
         return { success: true, message: `${path} için veriler yeniden doğrulandı` };
     } catch (error) {
-        console.error('Veri yeniden doğrulama hatası:', error);
-        return { success: false, message: 'Veri yeniden doğrulama başarısız oldu' };
+        console.error(`${path} yeniden doğrulama hatası:`, error);
+        return { success: false, error: `${path} yeniden doğrulama hatası: ${error}` };
     }
 }
 

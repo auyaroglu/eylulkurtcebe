@@ -198,43 +198,38 @@ export default function ProjectDetailPage({
                                         src={formatImageUrl(currentProject.images[activeImage])}
                                         alt={`${currentProject.title} - Ana Görsel`}
                                         fill
-                                        style={{ objectFit: 'cover' }}
-                                        className="transition-opacity duration-300 cursor-pointer hover:opacity-90"
-                                        sizes="(max-width: 768px) 100vw, 60vw"
-                                        placeholder="blur"
-                                        blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiMwODBiMTEiIC8+PC9zdmc+"
+                                        priority={true}
+                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 75vw, 50vw"
+                                        className="object-contain"
+                                        loading="eager"
                                     />
                                 </div>
 
-                                {/* Küçük Resimler - Thumbnail */}
-                                {currentProject.images.length > 1 && (
-                                    <div className="overflow-x-auto flex gap-2 pb-2 snap-x sm:gap-4">
-                                        {currentProject.images.map(
-                                            (image: string, index: number) => (
-                                                <div
-                                                    key={index}
-                                                    onClick={() => setActiveImage(index)}
-                                                    className={`snap-start h-16 w-16 sm:h-20 sm:w-20 relative rounded-lg overflow-hidden cursor-pointer flex-shrink-0 transition-all border-2 ${
-                                                        activeImage === index
-                                                            ? 'border-indigo-500 scale-105'
-                                                            : 'border-transparent opacity-70 hover:opacity-100'
-                                                    }`}
-                                                >
-                                                    <Image
-                                                        src={formatImageUrl(image)}
-                                                        alt={`${
-                                                            currentProject.title
-                                                        } - Küçük Resim ${index + 1}`}
-                                                        fill
-                                                        style={{ objectFit: 'cover' }}
-                                                        sizes="80px"
-                                                        loading="lazy"
-                                                    />
-                                                </div>
-                                            )
-                                        )}
-                                    </div>
-                                )}
+                                {/* Küçük görsel önizlemeleri */}
+                                <div className="grid grid-cols-4 gap-2 sm:gap-3">
+                                    {currentProject.images.map((image, index) => (
+                                        <button
+                                            key={`thumb-${index}`}
+                                            onClick={() => setActiveImage(index)}
+                                            className={`aspect-video relative rounded-lg overflow-hidden transition-all ${
+                                                activeImage === index
+                                                    ? 'ring-4 ring-indigo-500 scale-[1.02]'
+                                                    : 'ring-2 ring-gray-700/50 hover:ring-indigo-500/50'
+                                            }`}
+                                        >
+                                            <Image
+                                                src={formatImageUrl(image)}
+                                                alt={`${currentProject.title} - Görsel ${
+                                                    index + 1
+                                                }`}
+                                                fill
+                                                sizes="(max-width: 768px) 20vw, 10vw"
+                                                className="object-cover"
+                                                loading={index < 4 ? 'eager' : 'lazy'}
+                                            />
+                                        </button>
+                                    ))}
+                                </div>
 
                                 {/* Lightbox için diğer görseller (gizli) */}
                                 <div className="hidden">
@@ -328,84 +323,43 @@ export default function ProjectDetailPage({
 
                 {/* İlişkili Projeler */}
                 {relatedProjects && relatedProjects.length > 0 && (
-                    <motion.div
-                        className="mt-24"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: 0.4 }}
-                    >
-                        <h2 className="heading mb-8 text-2xl font-bold text-center">
-                            {detailTexts.relatedProjects}
-                        </h2>
-
-                        <motion.div
-                            variants={containerVariants}
-                            initial="hidden"
-                            animate="visible"
-                            className="grid grid-cols-1 gap-6 md:grid-cols-3"
-                        >
-                            {relatedProjects.map(project => (
-                                <motion.div
+                    <div className="mt-16">
+                        <h3 className="text-xl font-medium mb-6">{detailTexts.relatedProjects}</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {relatedProjects.map((project: Project) => (
+                                <Link
                                     key={`related-${project.id}`}
-                                    variants={itemVariants}
-                                    className="bg-white/5 overflow-hidden shadow-lg backdrop-blur-sm group dark:bg-black/5 [background:linear-gradient(45deg,#080b11,theme(colors.slate.800)_50%,#172033)_padding-box,conic-gradient(from_var(--border-angle),theme(colors.slate.600/.48)_80%,_theme(colors.indigo.500)_86%,_theme(colors.indigo.300)_90%,_theme(colors.indigo.500)_94%,_theme(colors.slate.600/.48))_border-box] rounded-xl sm:rounded-2xl border border-transparent animate-border p-4"
+                                    href={{
+                                        pathname: '/projects/[id]',
+                                        params: { id: project.id },
+                                    }}
+                                    className="bg-white/5 group overflow-hidden rounded-xl transition-transform hover:scale-[1.02] hover:shadow-xl"
+                                    prefetch={true}
                                 >
                                     {project.images && project.images.length > 0 && (
-                                        <div className="h-40 overflow-hidden relative mb-4 rounded-lg">
+                                        <div className="aspect-video relative">
                                             <Image
                                                 src={formatImageUrl(project.images[0])}
                                                 alt={project.title}
                                                 fill
-                                                style={{ objectFit: 'cover' }}
-                                                className="transition-transform duration-300 group-hover:scale-105"
-                                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 25vw"
+                                                className="object-cover transition-transform group-hover:scale-105"
                                                 loading="lazy"
-                                                placeholder="blur"
-                                                blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiMwODBiMTEiIC8+PC9zdmc+"
                                             />
                                         </div>
                                     )}
-
-                                    <Link
-                                        href={{
-                                            pathname: '/projects/[id]',
-                                            params: { id: project.id },
-                                        }}
-                                        className="block"
-                                    >
-                                        <h3 className="mb-2 text-lg font-semibold transition-colors group-hover:text-indigo-300">
+                                    <div className="p-4">
+                                        <h4 className="font-medium text-lg mb-2 text-white">
                                             {project.title}
-                                        </h3>
-                                        <p className="text-sm line-clamp-2 text-gray-400">
+                                        </h4>
+                                        <p className="text-sm text-gray-300 line-clamp-2">
                                             {project.description}
                                         </p>
-                                    </Link>
-
-                                    <div className="mt-4">
-                                        <div className="flex flex-wrap gap-1.5">
-                                            {Array.isArray(project.technologies) &&
-                                                project.technologies
-                                                    .slice(0, 3)
-                                                    .map((tech, idx) => (
-                                                        <span
-                                                            key={idx}
-                                                            className="bg-gray-100/10 px-2 py-1 text-xs font-medium rounded-full backdrop-blur-sm dark:bg-gray-700/10"
-                                                        >
-                                                            {tech}
-                                                        </span>
-                                                    ))}
-                                            {Array.isArray(project.technologies) &&
-                                                project.technologies.length > 3 && (
-                                                    <span className="bg-gray-100/10 px-2 py-1 text-xs font-medium rounded-full backdrop-blur-sm dark:bg-gray-700/10">
-                                                        +{project.technologies.length - 3}
-                                                    </span>
-                                                )}
-                                        </div>
                                     </div>
-                                </motion.div>
+                                </Link>
                             ))}
-                        </motion.div>
-                    </motion.div>
+                        </div>
+                    </div>
                 )}
             </div>
         </section>

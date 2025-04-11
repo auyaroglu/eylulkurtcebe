@@ -1,23 +1,5 @@
 'use client';
 
-// Proje ID'leri eşleştirme haritaları - statik haritalar artık kullanılmayacak
-export const projectIdMappings = {
-    // İngilizceden Türkçeye ID eşleştirmeleri
-    en_to_tr: {
-        project1: 'proje1',
-        project2: 'proje2',
-        project3: 'proje3',
-        project4: 'proje4',
-    },
-    // Türkçeden İngilizceye ID eşleştirmeleri
-    tr_to_en: {
-        proje1: 'project1',
-        proje2: 'project2',
-        proje3: 'project3',
-        proje4: 'project4',
-    },
-};
-
 // Verilen ID'yi kaynak dilden hedef dile dönüştürür - artık API tabanlı çalışacak
 export function mapProjectId(id: string, sourceLang: string, targetLang: string): string {
     if (sourceLang === targetLang) {
