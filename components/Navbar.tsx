@@ -14,6 +14,7 @@ import useSWR from 'swr';
 type NavLink = {
     label: string;
     url: string;
+    order?: number;
 };
 
 type NavbarProps = {
@@ -77,16 +78,24 @@ export default function Navbar({ lng }: NavbarProps) {
         async function setNavLinksFromData() {
             try {
                 if (data && data.nav && Array.isArray(data.nav.links)) {
-                    setNavLinks(data.nav.links);
+                    // Linkler order değerine göre sıralanıyor
+                    const sortedLinks = [...data.nav.links].sort((a, b) => {
+                        // Eğer order tanımlı değilse, sonlara at
+                        if (a.order === undefined) return 1;
+                        if (b.order === undefined) return -1;
+                        return a.order - b.order;
+                    });
+
+                    setNavLinks(sortedLinks);
                     setIsLoading(false);
                 } else if (error || !data) {
                     // Fallback bağlantılar
                     setNavLinks([
-                        { label: t('home'), url: '/#hero' },
-                        { label: t('about'), url: '/#about' },
-                        { label: t('skills'), url: '/#skills' },
-                        { label: t('projects'), url: '/projeler' },
-                        { label: t('contact'), url: '/#contact' },
+                        { label: t('home'), url: '/#hero', order: 0 },
+                        { label: t('about'), url: '/#about', order: 1 },
+                        { label: t('skills'), url: '/#skills', order: 2 },
+                        { label: t('projects'), url: '/projeler', order: 3 },
+                        { label: t('contact'), url: '/#contact', order: 4 },
                     ]);
                     setIsLoading(false);
                 }
@@ -94,11 +103,11 @@ export default function Navbar({ lng }: NavbarProps) {
                 console.error('Navigasyon bağlantıları işleme hatası:', error);
                 // Fallback bağlantılar
                 setNavLinks([
-                    { label: t('home'), url: '/#hero' },
-                    { label: t('about'), url: '/#about' },
-                    { label: t('skills'), url: '/#skills' },
-                    { label: t('projects'), url: '/projeler' },
-                    { label: t('contact'), url: '/#contact' },
+                    { label: t('home'), url: '/#hero', order: 0 },
+                    { label: t('about'), url: '/#about', order: 1 },
+                    { label: t('skills'), url: '/#skills', order: 2 },
+                    { label: t('projects'), url: '/projeler', order: 3 },
+                    { label: t('contact'), url: '/#contact', order: 4 },
                 ]);
                 setIsLoading(false);
             }

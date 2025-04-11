@@ -162,6 +162,7 @@ export default function ContentManagement() {
             const tagsToRevalidate = [
                 'content',
                 'navigation',
+                'navigation-order', // Navigasyon sıralaması için özel etiket
                 `content-${locale}`,
                 `navigation-${locale}`,
                 'site-content',
@@ -187,6 +188,33 @@ export default function ContentManagement() {
                 }
             }
 
+            // Navigasyon içeren önemli yolları temizle
+            const pathsToRevalidate = [
+                '/',
+                `/${locale}`,
+                `/${locale}/projects`,
+                `/${locale}/contact`,
+                '/api/navigation',
+                `/api/navigation/${locale}`,
+            ];
+
+            // Her bir yolu temizle
+            for (const path of pathsToRevalidate) {
+                try {
+                    const pathResponse = await fetch(`/api/admin/revalidate?path=${path}`, {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    });
+
+                    if (pathResponse.ok) {
+                        console.log(`${path} yolu başarıyla temizlendi.`);
+                    }
+                } catch (pathError) {
+                    console.error(`${path} yolu temizlenirken hata:`, pathError);
+                }
+            }
+
             // Yolları da revalidate et
             const response = await fetch(`/api/admin/revalidate?locale=${locale}`, {
                 headers: {
@@ -209,14 +237,24 @@ export default function ContentManagement() {
 
     // Site ön yüzünü yeni sekmede açma fonksiyonu
     const previewSite = async () => {
-        const prevCacheCleared = await revalidateCache(activeLocale);
+        // Önbellek temizleme işlemini başlat
+        setIsSaving(true);
 
-        if (prevCacheCleared) {
-            console.log('Ön izleme için önbellek temizlendi.');
+        try {
+            const prevCacheCleared = await revalidateCache(activeLocale);
+
+            if (prevCacheCleared) {
+                console.log('Ön izleme için önbellek temizlendi.');
+                // Yeni sekmede site önizlemesini aç
+                window.open(`/${activeLocale}`, '_blank');
+            } else {
+                console.error('Önbellek temizlenemedi.');
+            }
+        } catch (error) {
+            console.error('Önbellek temizleme sırasında hata:', error);
+        } finally {
+            setIsSaving(false);
         }
-
-        // Yeni sekmede site önizlemesini aç
-        window.open(`/${activeLocale}`, '_blank');
     };
 
     // İçerik değişikliklerini takip et
@@ -438,9 +476,30 @@ export default function ContentManagement() {
 
                             <button
                                 onClick={previewSite}
-                                className="px-4 py-2 mr-2 text-sm font-medium text-white bg-green-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 hover:bg-green-700"
+                                disabled={isSaving}
+                                className="flex items-center px-4 py-2 mr-2 text-sm font-medium text-white bg-green-600 rounded-md disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-green-500 hover:bg-green-700"
                             >
-                                Sitede Görüntüle
+                                {isSaving ? (
+                                    <span className="w-4 h-4 mr-2 rounded-full border-t-2 border-b-2 border-white animate-spin"></span>
+                                ) : (
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="w-4 h-4 mr-2"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                        />
+                                    </svg>
+                                )}
+                                {isSaving
+                                    ? 'Önbellek Temizleniyor...'
+                                    : 'Önbelleği Temizle ve Görüntüle'}
                             </button>
 
                             <button
