@@ -14,8 +14,8 @@ import mongoose from 'mongoose';
 
 // Her istek için sayfayı dinamik olarak oluştur
 export const dynamicParams = true;
-// Önbelleğe almayı devre dışı bırak
-export const revalidate = 0;
+// Önbelleğe alma: 30 dakika (1800 saniye)
+export const revalidate = 1800;
 
 // Site ayarlarını getiren fonksiyon
 async function getSiteSettings() {

@@ -8,6 +8,9 @@ import { Link } from '@/i18n/navigation';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { getContent } from '@/lib/api';
 
+// SWR ekleyelim - cached veritabanı sorguları için
+import useSWR from 'swr';
+
 type NavLink = {
     label: string;
     url: string;
@@ -17,28 +20,66 @@ type NavbarProps = {
     lng?: string;
 };
 
+// SWR fetcher fonksiyonu
+const fetcher = async (url: string) => {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Veri alınamadı');
+    return res.json();
+};
+
 export default function Navbar({ lng }: NavbarProps) {
     const t = useTranslations('nav');
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [activeSection, setActiveSection] = useState('');
+    const [activePage, setActivePage] = useState('');
     const [scrollPosition, setScrollPosition] = useState(0);
     const [navLinks, setNavLinks] = useState<NavLink[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
     const pathname = usePathname();
 
+    const locale = lng || 'tr';
+
+    // SWR kullanarak önbellekli veri çekme
+    const { data, error } = useSWR(`/api/content?locale=${locale}`, fetcher, {
+        revalidateOnFocus: false, // Sayfa odağı değiştiğinde yeniden sorgulamayı önle
+        revalidateIfStale: false, // Veri eskiyse yeniden sorgulamayı önle (değişmez içerik için)
+        dedupingInterval: 600000, // 10 dakika içinde aynı sorguyu tekrarlama
+    });
+
+    // Mevcut sayfa yolunu izle ve aktif sayfayı belirle
+    useEffect(() => {
+        // Aktif sayfa tespiti - sadece ana sayfa dışındakiler için
+        if (pathname) {
+            // Dil önekini kaldır (örn: /en/projects -> /projects)
+            let normalizedPath = pathname;
+            if (locale !== 'tr') {
+                normalizedPath = normalizedPath.replace(`/${locale}`, '');
+            }
+
+            // URL'den bölümleri ayıkla (örneğin /projeler/123 -> [projeler, 123])
+            const pathSegments = normalizedPath.split('/').filter(Boolean);
+
+            // Ana sayfadaysak, bölüm takibini kullan
+            if (pathSegments.length === 0) {
+                setActivePage('');
+            } else {
+                // Her zaman ilk segmenti kullan (ana kategori)
+                // Böylece /projeler/123 gibi alt sayfalarda da "projeler" kategorisi aktif olur
+                setActivePage(pathSegments[0]);
+            }
+        }
+    }, [pathname, locale]);
+
     // Navigasyon bağlantılarını dil bazında yükle
     useEffect(() => {
-        async function fetchNavLinks() {
+        async function setNavLinksFromData() {
             try {
-                setIsLoading(true);
-                const locale = lng || 'tr';
-                const data = await getContent(locale);
-
                 if (data && data.nav && Array.isArray(data.nav.links)) {
                     setNavLinks(data.nav.links);
-                } else {
+                    setIsLoading(false);
+                } else if (error || !data) {
                     // Fallback bağlantılar
                     setNavLinks([
                         { label: t('home'), url: '/#hero' },
@@ -47,9 +88,10 @@ export default function Navbar({ lng }: NavbarProps) {
                         { label: t('projects'), url: '/projeler' },
                         { label: t('contact'), url: '/#contact' },
                     ]);
+                    setIsLoading(false);
                 }
             } catch (error) {
-                console.error('Navigasyon bağlantıları yükleme hatası:', error);
+                console.error('Navigasyon bağlantıları işleme hatası:', error);
                 // Fallback bağlantılar
                 setNavLinks([
                     { label: t('home'), url: '/#hero' },
@@ -58,13 +100,12 @@ export default function Navbar({ lng }: NavbarProps) {
                     { label: t('projects'), url: '/projeler' },
                     { label: t('contact'), url: '/#contact' },
                 ]);
-            } finally {
                 setIsLoading(false);
             }
         }
 
-        fetchNavLinks();
-    }, [lng, t]);
+        setNavLinksFromData();
+    }, [data, error, t]);
 
     // Hash ile belirtilen bölüme kaydırma işlemi için
     useEffect(() => {
@@ -90,26 +131,32 @@ export default function Navbar({ lng }: NavbarProps) {
         const handleScroll = () => {
             setIsScrolled(window.scrollY > 10);
 
-            // Aktif bölümü belirle
-            const sections = navLinks
-                .filter(link => link.url.startsWith('/#'))
-                .map(link => link.url.replace('/#', ''));
+            // Aktif bölümü belirle - Sadece ana sayfada
+            if (!activePage) {
+                const sections = navLinks
+                    .filter(link => link.url.includes('#'))
+                    .map(link => {
+                        // Hash linkten ID'yi çıkar (/#about -> about)
+                        const hashPart = link.url.split('#')[1];
+                        return hashPart;
+                    });
 
-            const current = sections.find(section => {
-                const element = document.getElementById(section);
-                if (element) {
-                    const rect = element.getBoundingClientRect();
-                    return rect.top <= 100 && rect.bottom >= 100;
-                }
-                return false;
-            });
+                const current = sections.find(section => {
+                    const element = document.getElementById(section);
+                    if (element) {
+                        const rect = element.getBoundingClientRect();
+                        return rect.top <= 100 && rect.bottom >= 100;
+                    }
+                    return false;
+                });
 
-            setActiveSection(current || '');
+                setActiveSection(current || '');
+            }
         };
 
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
-    }, [navLinks]);
+    }, [navLinks, activePage]);
 
     // Body scroll kontrolü - Geliştirilmiş
     useEffect(() => {
@@ -205,6 +252,54 @@ export default function Navbar({ lng }: NavbarProps) {
         { href: '/admin/ayarlar', label: 'Ayarlar', icon: 'settings' },
     ];
 
+    // Hash link tıklamalarını işleyecek fonksiyon
+    const handleHashLinkClick = (
+        e: React.MouseEvent<HTMLAnchorElement>,
+        hash: string,
+        fullUrl: string
+    ) => {
+        e.preventDefault(); // Sayfanın yeniden yüklenmesini engelle
+
+        // Şu anki sayfanın ana sayfa olup olmadığını kontrol et
+        const isHomePage =
+            pathname === '/' ||
+            pathname === `/${locale}` ||
+            pathname.endsWith(`/${locale}/`) ||
+            pathname === '/en' ||
+            pathname.endsWith('/en/');
+
+        // Hash değerini al (# karakteri olmadan)
+        const targetId = hash.replace('#', '');
+
+        if (isHomePage) {
+            // Ana sayfadaysak, smooth scroll yap
+            const targetElement = document.getElementById(targetId);
+
+            if (targetElement) {
+                // Hedef elemente smooth scroll yap
+                targetElement.scrollIntoView({ behavior: 'smooth' });
+
+                // URL'yi güncelle (sayfa yenilenmeden)
+                const newUrl = window.location.pathname + hash;
+                window.history.pushState({}, '', newUrl);
+            }
+        } else {
+            // Ana sayfada değilsek, önce ana sayfaya git, sonra hash'i ekle
+            // URL'yi oluştur: /{lng}/#section formatında
+            const baseUrl = locale === 'tr' ? '/' : `/${locale}`;
+            const targetUrl = `${baseUrl}${hash}`;
+
+            // Sayfayı ana sayfaya yönlendir, hash ile birlikte
+            window.location.href = targetUrl;
+        }
+
+        // Mobil menü açıksa kapat
+        if (isMenuOpen) {
+            setIsMenuOpen(false);
+        }
+    };
+
+    // Yükleme durumunda hızlı gösterilen navbar
     if (isLoading) {
         return (
             <motion.header
@@ -252,21 +347,48 @@ export default function Navbar({ lng }: NavbarProps) {
                 <div className="hidden items-center space-x-4 md:flex">
                     <nav className="flex space-x-8">
                         {navLinks.map((link, index) => {
-                            const isHashLink = link.url.startsWith('/#');
-                            const sectionId = isHashLink ? link.url.replace('/#', '') : '';
+                            // Link tipini belirle: hash link mi yoksa sayfa linki mi?
+                            const isHashLink = link.url.includes('#');
+                            const sectionId = isHashLink ? link.url.split('#')[1] : '';
+
+                            // URL'den sayfa bölümünü çıkar (örn. /projeler -> projeler, /en/projects -> projects)
+                            let cleanUrl = '';
+
+                            if (!isHashLink) {
+                                // Dil öneki varsa kaldır
+                                let tempUrl = link.url;
+                                // Eğer /en/ ile başlıyorsa kaldır
+                                if (tempUrl.startsWith('/en/')) {
+                                    tempUrl = tempUrl.replace('/en/', '/');
+                                }
+
+                                // İlk URL segmentini al, ön ve son slashları kaldır
+                                cleanUrl = tempUrl.split('/').filter(Boolean)[0] || '';
+                            }
+
+                            // Link aktif mi kontrolü
+                            const isActive = isHashLink
+                                ? activeSection === sectionId && !activePage
+                                : activePage === cleanUrl;
+
+                            // URL'deki hash kısmını çıkar
+                            const hashPart = isHashLink ? `#${sectionId}` : '';
 
                             return (
                                 <a
                                     key={index}
                                     href={link.url}
+                                    onClick={
+                                        isHashLink
+                                            ? e => handleHashLinkClick(e, hashPart, link.url)
+                                            : undefined
+                                    }
                                     className={`text-[#111827] dark:text-[#f9fafb] hover:text-primary dark:hover:text-primary transition-colors relative ${
-                                        activeSection === sectionId
-                                            ? 'text-primary font-medium'
-                                            : ''
+                                        isActive ? 'text-primary font-medium' : ''
                                     }`}
                                 >
                                     {link.label}
-                                    {activeSection === sectionId && (
+                                    {isActive && (
                                         <motion.span
                                             className="absolute -bottom-1 left-0 w-full h-0.5 bg-primary rounded-full"
                                             layoutId="navIndicator"
@@ -324,17 +446,33 @@ export default function Navbar({ lng }: NavbarProps) {
                                 animate="open"
                                 exit="closed"
                             >
-                                {navLinks.map((link, index) => (
-                                    <motion.div key={index} variants={itemVariants}>
-                                        <a
-                                            href={link.url}
-                                            className="text-2xl font-medium text-white transition-colors hover:text-primary"
-                                            onClick={() => setIsMenuOpen(false)}
-                                        >
-                                            {link.label}
-                                        </a>
-                                    </motion.div>
-                                ))}
+                                {navLinks.map((link, index) => {
+                                    const isHashLink = link.url.includes('#');
+                                    const hashPart = isHashLink
+                                        ? link.url.substring(link.url.indexOf('#'))
+                                        : '';
+
+                                    return (
+                                        <motion.div key={index} variants={itemVariants}>
+                                            <a
+                                                href={link.url}
+                                                onClick={
+                                                    isHashLink
+                                                        ? e =>
+                                                              handleHashLinkClick(
+                                                                  e,
+                                                                  hashPart,
+                                                                  link.url
+                                                              )
+                                                        : () => setIsMenuOpen(false)
+                                                }
+                                                className="text-2xl font-medium text-white transition-colors hover:text-primary"
+                                            >
+                                                {link.label}
+                                            </a>
+                                        </motion.div>
+                                    );
+                                })}
                             </motion.nav>
                         </motion.div>
                     )}

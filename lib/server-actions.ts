@@ -67,13 +67,20 @@ function convertToPlainObject(data: any): any {
  */
 export const getContentFromDB = cache(async (locale: string) => {
     try {
-        await connectToDatabase();
+        // MongoDB bağlantısı zaten açıksa, yeni bağlantı açmaya çalışmayalım
+        if (!mongoose.connection.readyState) {
+            await connectToDatabase();
+        }
 
         // MongoDB koleksiyonuna doğrudan erişim
         const db = mongoose.connection;
         const contentsCollection = db.collection('contents');
 
-        const content = await contentsCollection.findOne({ locale });
+        // Belirli bir süre için önbellekte tutulmuş içerik verilerini MongoDB'nin cached query mekanizması ile çekiyoruz
+        const content = await contentsCollection.findOne(
+            { locale },
+            { maxTimeMS: 5000 } // Sorgu için 5 saniye maksimum süre
+        );
 
         if (!content) {
             console.error(`${locale} için içerik bulunamadı`);
@@ -91,7 +98,10 @@ export const getContentFromDB = cache(async (locale: string) => {
 // Tüm projeleri alma
 export const getProjectsFromDB = cache(async (locale: string, projectId?: string): Promise<any> => {
     try {
-        await connectToDatabase();
+        // MongoDB bağlantısı zaten açıksa, yeni bağlantı açmaya çalışmayalım
+        if (!mongoose.connection.readyState) {
+            await connectToDatabase();
+        }
 
         // Çeviri verilerini al
         // @ts-ignore - Mongoose tip sorunlarını görmezden gel

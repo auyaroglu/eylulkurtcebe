@@ -1,60 +1,68 @@
 import mongoose from 'mongoose';
 
-if (!process.env.MONGODB_URI) {
-    throw new Error('MONGODB_URI ortam değişkeni tanımlanmamış');
-}
+const MONGODB_URI = process.env.MONGODB_URI!;
 
-const MONGODB_URI = process.env.MONGODB_URI;
+// Global bağlantı durumu takibi için değişken
+let cachedConnection: typeof mongoose | null = null;
+let connectionPromise: Promise<typeof mongoose> | null = null;
 
-/**
- * Global değişkenler
- */
-interface Global {
-    mongoose: {
-        conn: typeof mongoose | null;
-        promise: Promise<typeof mongoose> | null;
-    };
-}
+// Mongoose'un debug mesajlarını kapat
+mongoose.set('debug', false);
 
-// TypeScript global bildirimi
-declare const global: Global;
+// Mongoose bağlantı seçenekleri
+const options: mongoose.ConnectOptions = {
+    maxPoolSize: 10, // Bağlantı havuzundaki maksimum bağlantı sayısı
+    minPoolSize: 2, // Minimum bağlantı sayısı
+    serverSelectionTimeoutMS: 5000, // Sunucu seçim zaman aşımı
+    socketTimeoutMS: 45000, // Soket zaman aşımı
+    connectTimeoutMS: 10000, // Bağlantı zaman aşımı
+};
 
-// Mongoose cache tanımı
-let cached = global.mongoose;
-
-if (!cached) {
-    cached = global.mongoose = { conn: null, promise: null };
+if (!MONGODB_URI) {
+    throw new Error('MONGODB_URI çevre değişkeni tanımlanmamış');
 }
 
 /**
- * Veritabanına bağlanmak için kullanılan fonksiyon
- * @returns Mongoose bağlantısı
+ * Singleton veritabanı bağlantısı - yeni bağlantı açmak yerine mevcut olanı kullanır
  */
-export async function connectToDatabase() {
-    if (cached.conn) {
-        return cached.conn;
+export async function connectToDatabase(): Promise<typeof mongoose> {
+    // Zaten bağlantı kurulmuşsa onu döndür
+    if (mongoose.connection.readyState === 1) {
+        return mongoose;
     }
 
-    if (!cached.promise) {
-        const opts = {
-            bufferCommands: false,
-        };
-
-        cached.promise = mongoose.connect(MONGODB_URI, opts).then(mongoose => {
-            console.log('MongoDB bağlantısı başarılı');
-            return mongoose;
-        });
+    // Zaten bir bağlantı açma işlemi devam ediyorsa, onu bekle ve döndür
+    if (connectionPromise) {
+        return connectionPromise;
     }
 
+    // Yeni bir bağlantı oluştur
     try {
-        cached.conn = await cached.promise;
-    } catch (e) {
-        cached.promise = null;
-        console.error('MongoDB bağlantı hatası:', e);
-        throw e;
-    }
+        connectionPromise = mongoose.connect(MONGODB_URI, options);
+        cachedConnection = await connectionPromise;
 
-    return cached.conn;
+        // Bağlantı başarıyla kurulduğunda
+        mongoose.connection.on('connected', () => {
+            console.log('MongoDB bağlantısı başarıyla kuruldu');
+        });
+
+        // Bağlantı hatasında
+        mongoose.connection.on('error', err => {
+            console.error('MongoDB bağlantı hatası:', err);
+        });
+
+        // Uygulama kapatıldığında bağlantıyı kapat
+        process.on('SIGINT', async () => {
+            await mongoose.connection.close();
+            process.exit(0);
+        });
+
+        return cachedConnection;
+    } catch (error) {
+        console.error('MongoDB bağlantısı kurulamadı:', error);
+        connectionPromise = null;
+        throw error;
+    }
 }
 
 /**
