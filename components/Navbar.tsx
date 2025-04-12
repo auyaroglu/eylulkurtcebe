@@ -43,10 +43,19 @@ export default function Navbar({ lng }: NavbarProps) {
     const locale = lng || 'tr';
 
     // SWR kullanarak önbellekli veri çekme
-    const { data, error } = useSWR(`/api/content?locale=${locale}`, fetcher, {
+    const { data, error, mutate } = useSWR(`/api/content?locale=${locale}`, fetcher, {
         revalidateOnFocus: false, // Sayfa odağı değiştiğinde yeniden sorgulamayı önle
-        revalidateIfStale: false, // Veri eskiyse yeniden sorgulamayı önle (değişmez içerik için)
-        dedupingInterval: 600000, // 10 dakika içinde aynı sorguyu tekrarlama
+        revalidateIfStale: true, // Veri eskiyse yeniden sorgula (değişebilir içerik için)
+        dedupingInterval: 5000, // 5 saniye içinde aynı sorguyu tekrarlama (production için süreyi kısalttık)
+        revalidateOnMount: true, // Bileşen mount olduğunda veriyi yeniden sorgula
+        refreshInterval: 0, // Otomatik yenileme kapalı
+        refreshWhenHidden: false, // Sekme gizliyken yenilememe
+        onErrorRetry: (error, key, config, revalidate, { retryCount }) => {
+            // Hata durumunda yeniden dene, ama 3 denemeden fazla olmasın
+            if (retryCount >= 3) return;
+            // 3 saniye sonra yeniden dene
+            setTimeout(() => revalidate({ retryCount }), 3000);
+        },
     });
 
     // Mevcut sayfa yolunu izle ve aktif sayfayı belirle
@@ -307,6 +316,45 @@ export default function Navbar({ lng }: NavbarProps) {
             setIsMenuOpen(false);
         }
     };
+
+    // Sayfa açıldığında veya pathname değiştiğinde içeriği yenile
+    useEffect(() => {
+        // SWR önbelleğini yenile
+        mutate();
+
+        // Admin panelden bir revalidate sinyali var mı kontrol et
+        if (typeof window !== 'undefined') {
+            try {
+                const revalidateTimestamp = localStorage.getItem('swr-revalidate-timestamp');
+                const shouldRevalidateContent = localStorage.getItem('swr-revalidate-content');
+
+                if (revalidateTimestamp && shouldRevalidateContent === 'true') {
+                    // Sinyal var, önbelleği güçlü bir şekilde yeniden yükle
+                    console.log('SWR önbelleği yenileniyor: Content değişikliği sinyali alındı');
+
+                    // Mutate ile veriyi tamamen yeniden çek (önbelleği atla)
+                    mutate(undefined, { revalidate: true });
+
+                    // Sinyali temizle (sadece bir kez çalışsın)
+                    localStorage.removeItem('swr-revalidate-content');
+                }
+            } catch (err) {
+                console.error('SWR sinyal kontrolünde hata:', err);
+            }
+        }
+    }, [pathname, mutate]);
+
+    // Görünür olduğunda veriyi yenile (sekme değiştiğinde)
+    useEffect(() => {
+        function handleVisibilityChange() {
+            if (document.visibilityState === 'visible') {
+                mutate();
+            }
+        }
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }, [mutate]);
 
     // Yükleme durumunda hızlı gösterilen navbar
     if (isLoading) {

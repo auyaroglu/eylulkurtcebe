@@ -245,6 +245,17 @@ export default function ContentManagement() {
 
             if (prevCacheCleared) {
                 console.log('Ön izleme için önbellek temizlendi.');
+
+                // SWR önbelleğini de temizle - tarayıcı depolama alanına bir sinyal bırak
+                try {
+                    // SWR için tüm içerik endpointleri için tarayıcı local storage'a revalidate sinyali ekle
+                    localStorage.setItem('swr-revalidate-timestamp', Date.now().toString());
+                    localStorage.setItem('swr-revalidate-content', 'true');
+                    console.log('SWR önbelleği için revalidate sinyali eklendi.');
+                } catch (err) {
+                    console.error('SWR revalidate sinyali eklenirken hata:', err);
+                }
+
                 // Yeni sekmede site önizlemesini aç
                 window.open(`/${activeLocale}`, '_blank');
             } else {

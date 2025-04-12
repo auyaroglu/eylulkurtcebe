@@ -10,6 +10,7 @@ import ToastProvider from '@/components/ToastProvider';
 import { connectToDatabase } from '@/lib/db';
 import SiteConfig from '@/models/SiteConfig';
 import mongoose from 'mongoose';
+import { SWRConfig } from 'swr';
 
 // Site ayarlarını getiren fonksiyon
 async function getSiteSettings() {
@@ -99,11 +100,54 @@ export default async function RootLayout({
             >
                 <StarBackground />
                 <NextIntlClientProvider locale={locale} messages={messages}>
-                    <AnimationProvider>
-                        {children}
-                        <ToastProvider />
-                    </AnimationProvider>
+                    <SWRConfig
+                        value={{
+                            provider: () => new Map(),
+                            revalidateOnFocus: false,
+                            revalidateIfStale: true,
+                            shouldRetryOnError: true,
+                            errorRetryCount: 3,
+                            onSuccess: (data, key) => {
+                                // Başarılı SWR isteklerini konsola yazdırma (sadece geliştirme modunda)
+                                if (process.env.NODE_ENV === 'development') {
+                                    console.log(`[SWR Success] ${key}`);
+                                }
+                            },
+                            onError: (error, key) => {
+                                // Hatalı SWR isteklerini konsola yazdırma
+                                console.error(`[SWR Error] ${key}:`, error);
+                            },
+                        }}
+                    >
+                        <AnimationProvider>
+                            {children}
+                            <ToastProvider />
+                        </AnimationProvider>
+                    </SWRConfig>
                 </NextIntlClientProvider>
+
+                {/* SWR Önbelleğini Dinleyen Script */}
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `
+                        // SWR revalidate sinyalini kontrol eden script
+                        (function() {
+                            try {
+                                window.addEventListener('storage', function(e) {
+                                    // Local storage değişikliğini dinle
+                                    if (e.key === 'swr-revalidate-timestamp') {
+                                        console.log('[SWR Global] Revalidate sinyali algılandı, sayfa yenilenecek');
+                                        // Sayfayı yenile (SWR önbelleğini tamamen temizlemek için)
+                                        window.location.reload();
+                                    }
+                                });
+                            } catch(e) {
+                                console.error('SWR revalidate listener hatası:', e);
+                            }
+                        })();
+                    `,
+                    }}
+                />
             </body>
         </html>
     );
