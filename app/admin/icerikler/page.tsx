@@ -241,17 +241,38 @@ export default function ContentManagement() {
         setIsSaving(true);
 
         try {
+            // Önce API çağrısı ile sunucu önbelleğini temizle
             const prevCacheCleared = await revalidateCache(activeLocale);
 
             if (prevCacheCleared) {
                 console.log('Ön izleme için önbellek temizlendi.');
 
-                // SWR önbelleğini de temizle - tarayıcı depolama alanına bir sinyal bırak
+                // SWR önbelleğini de temizle - localStorage'a bir sinyal bırak
                 try {
-                    // SWR için tüm içerik endpointleri için tarayıcı local storage'a revalidate sinyali ekle
-                    localStorage.setItem('swr-revalidate-timestamp', Date.now().toString());
+                    // Şu anki zaman damgası ile revalidate sinyali ekle
+                    const timestamp = Date.now().toString();
+                    localStorage.setItem('swr-revalidate-timestamp', timestamp);
                     localStorage.setItem('swr-revalidate-content', 'true');
-                    console.log('SWR önbelleği için revalidate sinyali eklendi.');
+
+                    // SWR cache anahtarlarını temizleme sinyali ekle
+                    localStorage.setItem(
+                        'swr-clear-keys',
+                        JSON.stringify([
+                            `/api/content?locale=${activeLocale}`,
+                            `/api/navigation?locale=${activeLocale}`,
+                            `/api/site-settings`,
+                        ])
+                    );
+
+                    console.log('SWR önbelleği için revalidate sinyali eklendi');
+
+                    // Diğer sekmelere sinyal göndermek için bir storage event tetikle
+                    window.dispatchEvent(
+                        new StorageEvent('storage', {
+                            key: 'swr-revalidate-timestamp',
+                            newValue: timestamp,
+                        })
+                    );
                 } catch (err) {
                     console.error('SWR revalidate sinyali eklenirken hata:', err);
                 }

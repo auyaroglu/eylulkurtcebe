@@ -1,16 +1,12 @@
-import type { Metadata } from 'next';
 import './globals.css';
 import 'react-toastify/dist/ReactToastify.css';
-import StarBackground from '@/components/StarBackground';
+import type { Metadata } from 'next';
 import { defaultLocale } from '@/i18n';
-import { AnimationProvider } from './animation-context';
 import { inter, robotoMono, fontStyles } from './fonts';
-import { NextIntlClientProvider } from 'next-intl';
-import ToastProvider from '@/components/ToastProvider';
 import { connectToDatabase } from '@/lib/db';
-import SiteConfig from '@/models/SiteConfig';
 import mongoose from 'mongoose';
-import { SWRConfig } from 'swr';
+import StarBackground from '@/components/StarBackground';
+import ClientProviders from './client-providers';
 
 // Site ayarlarını getiren fonksiyon
 async function getSiteSettings() {
@@ -79,7 +75,7 @@ export default async function RootLayout({
         messages = (await import(`../messages/${locale}.json`)).default;
     } catch (error) {
         console.error(`Dil dosyası yüklenemedi: ${locale}.json`, error);
-        // notFound() yerine varsayılan dile düşme
+        // Varsayılan dile düşme
         if (locale !== defaultLocale) {
             try {
                 messages = (await import(`../messages/${defaultLocale}.json`)).default;
@@ -99,32 +95,9 @@ export default async function RootLayout({
                 className="bg-[#111827] dark:bg-[#111827] text-[#f9fafb] dark:text-[#f9fafb] antialiased"
             >
                 <StarBackground />
-                <NextIntlClientProvider locale={locale} messages={messages}>
-                    <SWRConfig
-                        value={{
-                            provider: () => new Map(),
-                            revalidateOnFocus: false,
-                            revalidateIfStale: true,
-                            shouldRetryOnError: true,
-                            errorRetryCount: 3,
-                            onSuccess: (data, key) => {
-                                // Başarılı SWR isteklerini konsola yazdırma (sadece geliştirme modunda)
-                                if (process.env.NODE_ENV === 'development') {
-                                    console.log(`[SWR Success] ${key}`);
-                                }
-                            },
-                            onError: (error, key) => {
-                                // Hatalı SWR isteklerini konsola yazdırma
-                                console.error(`[SWR Error] ${key}:`, error);
-                            },
-                        }}
-                    >
-                        <AnimationProvider>
-                            {children}
-                            <ToastProvider />
-                        </AnimationProvider>
-                    </SWRConfig>
-                </NextIntlClientProvider>
+                <ClientProviders locale={locale} messages={messages}>
+                    {children}
+                </ClientProviders>
 
                 {/* SWR Önbelleğini Dinleyen Script */}
                 <script
@@ -133,16 +106,35 @@ export default async function RootLayout({
                         // SWR revalidate sinyalini kontrol eden script
                         (function() {
                             try {
-                                window.addEventListener('storage', function(e) {
-                                    // Local storage değişikliğini dinle
-                                    if (e.key === 'swr-revalidate-timestamp') {
-                                        console.log('[SWR Global] Revalidate sinyali algılandı, sayfa yenilenecek');
-                                        // Sayfayı yenile (SWR önbelleğini tamamen temizlemek için)
+                                // Sayfa yüklendiğinde de localStorage'dan revalidate sinyali kontrol et
+                                function checkForRevalidateSignal() {
+                                    const timestamp = localStorage.getItem('swr-revalidate-timestamp');
+                                    const shouldRevalidate = localStorage.getItem('swr-revalidate-content');
+                                    
+                                    if (timestamp && shouldRevalidate === 'true') {
+                                        console.log('[SWR] Revalidate sinyali algılandı, sayfa yenilenecek');
+                                        
+                                        // Sinyali temizle ki diğer sekmeler aynı işlemi tekrarlamasın
+                                        localStorage.removeItem('swr-revalidate-content');
+                                        
+                                        // Sayfa içeriğini yenile
                                         window.location.reload();
+                                    }
+                                }
+                                
+                                // Sayfa yüklendiğinde kontrol et
+                                checkForRevalidateSignal();
+                                
+                                // Storage olaylarını dinle (diğer sekmelerden gelen sinyaller için)
+                                window.addEventListener('storage', function(e) {
+                                    // Local storage değişikliği olduğunda
+                                    if (e.key === 'swr-revalidate-timestamp') {
+                                        console.log('[SWR] Storage event: Revalidate sinyali algılandı');
+                                        checkForRevalidateSignal();
                                     }
                                 });
                             } catch(e) {
-                                console.error('SWR revalidate listener hatası:', e);
+                                console.error('[SWR] Revalidate listener hatası:', e);
                             }
                         })();
                     `,

@@ -30,9 +30,6 @@ export default function Skills({ contentData }: SkillsProps) {
         return translatedCategories;
     }, [t, contentData, locale, animationKey]);
 
-    // Kategori verilerini kontrol etmek için bir kullan
-    console.log('Güncel kategori verileri:', skillCategories);
-
     return (
         <section id="skills" className="relative py-12 lg:py-24 max-lg:px-5 md:py-20 sm:py-16">
             <div className="from-accent/5 to-transparent absolute inset-0 bg-gradient-to-t dark:from-accent/10">
